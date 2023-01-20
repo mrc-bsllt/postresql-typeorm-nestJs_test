@@ -6,6 +6,7 @@ import { CreateTeacherDto } from './dtos/create-teacher.dto'
 import { BadRequestException } from '@nestjs/common'
 import { School } from 'src/schools/scholl.entity'
 import { GetTeachersDto } from './dtos/get-teachers.dto'
+import { GetTeacherByIdDto } from './dtos/get-teacher-by-id.dto'
 
 @Injectable()
 export class TeachersService {
@@ -46,6 +47,17 @@ export class TeachersService {
       return await this.TeacherRepo.createQueryBuilder('teacher')
         .where("teacher.schoolId = :schoolId", { schoolId })
         .getMany()
+    } catch(error) {
+      console.log(error)
+      throw new BadRequestException()
+    }
+  }
+
+  async getTeacherById(teacherId: GetTeacherByIdDto) {
+    try {
+      return await this.TeacherRepo.createQueryBuilder('teacher')
+        .where("teacher.id = :teacherId", { teacherId })
+        .getOne() || {}
     } catch(error) {
       console.log(error)
       throw new BadRequestException()
