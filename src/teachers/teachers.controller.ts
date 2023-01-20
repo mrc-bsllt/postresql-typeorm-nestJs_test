@@ -6,7 +6,8 @@ import {
   Param,
   Query,
   UseInterceptors,
-  ClassSerializerInterceptor
+  ClassSerializerInterceptor,
+  ParseIntPipe
 } from '@nestjs/common';
 import { TeachersService } from './teachers.service'
 import { CreateTeacherDto } from './dtos/create-teacher.dto'
@@ -24,12 +25,16 @@ export class TeachersController {
   }
 
   @Get()
-  getTeachers(@Query('school_id') schoolId: GetTeachersDto) {
+  getTeachers(
+    @Query('school_id') schoolId: GetTeachersDto
+  ) {
     return this.teachersService.getTeachers(schoolId)
   }
 
   @Get(':teacher_id')
-  getTeacherById(@Param('teacher_id') teacherId: GetTeacherByIdDto) {
+  getTeacherById(
+    @Param('teacher_id', ParseIntPipe) teacherId: GetTeacherByIdDto
+  ) {
     return this.teachersService.getTeacherById(teacherId)
   }
 }
