@@ -1,6 +1,7 @@
 import { 
   Controller,
   Post,
+  Get,
   Body,
 } from '@nestjs/common'
 import { SchoolsService } from './schools.service'
@@ -13,5 +14,10 @@ export class SchoolsController {
   @Post()
   createSchool(@Body() body: CreateSchollDto) {
     return this.schoolsService.createSchool(body)
+  }
+
+  @Get()
+  getSchools() {
+    return this.schoolsService.getSchools()
   }
 }

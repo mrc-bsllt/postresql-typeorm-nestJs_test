@@ -28,4 +28,23 @@ export class SchoolsService {
       throw new BadRequestException(detail)
     }
   }
+
+  async getSchools() {
+    try {
+      return await this.SchoolRepo.createQueryBuilder('school')
+        .leftJoinAndSelect('school.teachers', 'teacher')
+        .loadRelationCountAndMap('school.teachersCount', 'school.teachers')
+        .select([
+          'school.id',
+          'school.name',
+          'school.municipality',
+          'school.province',
+          'school.address',
+        ])
+        .getMany()
+    } catch(error) {
+      console.log(error)
+      throw new BadRequestException()
+    }
+  }
 }
