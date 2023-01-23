@@ -5,11 +5,15 @@ import {
   Post,
   Body,
   HttpCode,
-  HttpStatus
+  HttpStatus,
+  Req,
+  UseGuards
 } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { UserDto } from './dtos/user.dto'
 import { TokensResponse } from './dtos/tokens-response.dto'
+import { Request } from 'express'
+import { AuthGuard } from '@nestjs/passport'
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -28,15 +32,19 @@ export class AuthController {
     return this.authService.login(body)
   }
 
-  @Post('login')
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
   refreshToken() {
     return this.authService.refreshToken()
   }
-  
-  @Post('login')
+
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  logout() {
-    return this.authService.logout()
+  logout(@Req() req: Request) {
+    const user = req.user
+
+    return this.authService.logout(user['id'])
   }
 }

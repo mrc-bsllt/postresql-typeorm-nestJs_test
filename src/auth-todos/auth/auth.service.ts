@@ -5,7 +5,7 @@ import {
   UnauthorizedException
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { IsNull, Repository } from 'typeorm'
 import { User } from './user.entity'
 import { UserDto } from './dtos/user.dto'
 import { TokensResponse } from './dtos/tokens-response.dto'
@@ -65,14 +65,26 @@ export class AuthService {
 
   refreshToken() {}
 
-  logout() {}
+  async logout(userId: number) {
+    try {
+      await this.UserRepo
+        .createQueryBuilder()
+        .update(User)
+        .set({ refresh_token: null })
+        .where("id = :userId", { userId })
+        .execute()
+    } catch(error) {
+      console.log(error)
+      throw new BadRequestException()
+    }
+  }
 
   // JWT HELPER FUNCTIONS ------------------------
   async getTokens(userId: number, email: string): Promise<TokensResponse> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
-          userId,
+          id: userId,
           email
         },
         {
@@ -82,7 +94,7 @@ export class AuthService {
       ),
       this.jwtService.signAsync(
         {
-          userId,
+          id: userId,
           email
         },
         {
