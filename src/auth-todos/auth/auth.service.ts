@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { 
+  BadRequestException, 
+  Injectable, 
+  InternalServerErrorException 
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { User } from './user.entity'
@@ -24,7 +28,7 @@ export class AuthService {
         password: hashedPassword
       })
       await this.UserRepo.save(user)
-      
+
       const tokens = await this.getTokens(user.id, user.email)
       await this.updateRefreshToken(user.id, tokens.refreshToken)
 
@@ -75,12 +79,17 @@ export class AuthService {
   }
 
   async updateRefreshToken(userId: number, refreshToken: string) {
-    const hashedRt = await bcrypt.hash(refreshToken, 12)
-    await this.UserRepo
-      .createQueryBuilder()
-      .update(User)
-      .set({ refresh_token: hashedRt })
-      .where("id = :userId", { userId })
-      .execute()
+    try {
+      const hashedRt = await bcrypt.hash(refreshToken, 12)
+      await this.UserRepo
+        .createQueryBuilder()
+        .update(User)
+        .set({ refresh_token: hashedRt })
+        .where("id = :userId", { userId })
+        .execute()
+    } catch(error) {
+      console.log(error)
+      throw new InternalServerErrorException()
+    }
   }
 }
