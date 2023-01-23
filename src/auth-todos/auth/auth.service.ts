@@ -1,7 +1,8 @@
 import { 
   BadRequestException, 
   Injectable, 
-  InternalServerErrorException 
+  InternalServerErrorException, 
+  UnauthorizedException
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -39,8 +40,27 @@ export class AuthService {
     }
   }
 
-  login(body: UserDto) {
-    return body
+  async login(body: UserDto): Promise<TokensResponse> {
+    const { email, password } = body
+
+    try {
+      const user = await this.UserRepo.findOneOrFail({ 
+        where: {
+          email
+        }
+      })
+
+      const passwordMatches = await bcrypt.compare(password, user.password)
+      if(!passwordMatches) throw new UnauthorizedException()
+
+      const tokens = await this.getTokens(user.id, user.email)
+      await this.updateRefreshToken(user.id, tokens.refreshToken)
+
+      return tokens
+    } catch(error) {
+      console.log(error)
+      throw new UnauthorizedException()
+    }
   }
 
   refreshToken() {}
