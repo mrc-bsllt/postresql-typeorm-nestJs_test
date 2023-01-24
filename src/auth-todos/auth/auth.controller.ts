@@ -14,6 +14,7 @@ import { UserDto } from './dtos/user.dto'
 import { TokensResponse } from './dtos/tokens-response.dto'
 import { Request } from 'express'
 import { AuthGuard } from '@nestjs/passport'
+import { User } from './user.entity'
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -35,16 +36,18 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
-  refreshToken() {
-    return this.authService.refreshToken()
+  refreshToken(@Req() req: Request): Promise<TokensResponse> {
+    const user = req.user as Partial<User>
+    
+    return this.authService.refreshToken(user.id, user.refresh_token)
   }
 
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   logout(@Req() req: Request) {
-    const user = req.user
+    const user = req.user as Partial<User>
 
-    return this.authService.logout(user['id'])
+    return this.authService.logout(user.id)
   }
 }

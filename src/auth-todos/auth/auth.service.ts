@@ -63,7 +63,26 @@ export class AuthService {
     }
   }
 
-  refreshToken() {}
+  async refreshToken(userId: number, refreshToken: string): Promise<TokensResponse> {
+    try {
+      const user = await this.UserRepo.findOneOrFail({
+        where: {
+          id: userId
+        }
+      })
+      
+      const rtMatches = await bcrypt.compare(refreshToken, user.refresh_token)
+      if(!rtMatches) throw new UnauthorizedException()
+      
+      const tokens = await this.getTokens(user.id, user.email)
+      await this.updateRefreshToken(user.id, tokens.refreshToken)
+
+      return tokens
+    } catch(error) {
+      console.log(error)
+      throw new UnauthorizedException()
+    }
+  }
 
   async logout(userId: number) {
     try {
